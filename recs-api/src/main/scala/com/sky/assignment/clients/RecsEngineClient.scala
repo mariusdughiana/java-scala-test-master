@@ -16,12 +16,12 @@ import scala.xml.XML
 object RecsEngineClient extends HttpClient {
 
   private val recsEngineBaseURL = "http://localhost:8080/"
+  private implicit val formats = DefaultFormats
 
   def getRecsForSubscriber(subscriber: String, startingTime: Long,
-                           recs: Int = 5, slots: Int = 3, slotLength: Long = 3600000): String = {
+  recs: Int = 5, slots: Int = 3, slotLength: Long = 3600000): String = {
 
     try {
-
       val recsList = MutableList[JValue]()
       for (i <- 1 to slots) {
         val slotEnd = startingTime + i*slotLength;
@@ -29,7 +29,6 @@ object RecsEngineClient extends HttpClient {
         val recsPerSlot = getRecsForTimeSlot(recs, slotStart, slotEnd, subscriber)
         recsList += recsPerSlot;
       }
-      implicit val formats = DefaultFormats
       write(recsList)
     } catch {
       case e@(_: SAXParseException | _: ConnectException | _: HttpClientException) => "{\"error\": \"Wrong result from RescEngine." + e.getMessage + "\"}"
@@ -52,11 +51,6 @@ object RecsEngineClient extends HttpClient {
       case ("recommendations", x: JObject) => ("recommendations", x.children.apply(0))
       case x => x
     }
-
-
-    implicit val formats = DefaultFormats
-    val jsonOutput = recsAsJson merge JObject(JField("expiry", JInt(end)) :: Nil)
-    jsonOutput
+    recsAsJson merge JObject(JField("expiry", JInt(end)) :: Nil)
   }
-
 }

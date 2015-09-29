@@ -8,6 +8,7 @@ import org.json4s.Xml.toJson
 import org.json4s.native.Serialization.write
 import org.xml.sax.SAXParseException
 
+import scala.collection.mutable.MutableList
 import scala.collection.mutable.HashMap
 import scala.xml.XML
 
@@ -16,22 +17,27 @@ object RecsEngineClient extends HttpClient {
 
   private val recsEngineBaseURL = "http://localhost:8080/"
 
-  def getRecsForSubscriber(subscriber: String, startingTime: Long): String = {
+  def getRecsForSubscriber(subscriber: String, startingTime: Long,
+                           recs: Int = 5, slots: Int = 3, slotLength: Long = 3600000): String = {
 
     try {
-      val oneHour = 60 * 60 * 1000
-      val recSslot1 = getRecsForTimeSlot(5, startingTime, startingTime + oneHour, subscriber)
-      val recSslot2 = getRecsForTimeSlot(5, startingTime + oneHour, startingTime + 2 * oneHour, subscriber)
-      val recSslot3 = getRecsForTimeSlot(5, startingTime + 2 * oneHour, startingTime + 3 * oneHour, subscriber)
 
-      "[ " + recSslot1 + "," + recSslot2 + "," + recSslot3 + "]"
+      val recsList = MutableList[JValue]()
+      for (i <- 1 to slots) {
+        val slotEnd = startingTime + i*slotLength;
+        val slotStart = slotEnd - slotLength;
+        val recsPerSlot = getRecsForTimeSlot(recs, slotStart, slotEnd, subscriber)
+        recsList += recsPerSlot;
+      }
+      implicit val formats = DefaultFormats
+      write(recsList)
     } catch {
-      case e @ (_ : SAXParseException | _ : ConnectException| _ : HttpClientException)  => "{\"error\": \"Wrong result from RescEngine." + e.getMessage + "\"}"
+      case e@(_: SAXParseException | _: ConnectException | _: HttpClientException) => "{\"error\": \"Wrong result from RescEngine." + e.getMessage + "\"}"
     }
   }
 
 
-  private def getRecsForTimeSlot(num: Int, start: Long, end: Long, subscriber: String): String = {
+  private def getRecsForTimeSlot(num: Int, start: Long, end: Long, subscriber: String): JValue = {
     val params = new HashMap[String, String]
     params.put("num", num.toString);
     params.put("start", start.toString);
@@ -41,7 +47,6 @@ object RecsEngineClient extends HttpClient {
     val content = getRestContent(buildUrl(recsEngineBaseURL + "/recs/personalised", params))
 
     val recsAsXml = XML.loadString(content)
-    assert(recsAsXml.isInstanceOf[scala.xml.Elem])
 
     val recsAsJson = toJson(recsAsXml) transformField {
       case ("recommendations", x: JObject) => ("recommendations", x.children.apply(0))
@@ -51,7 +56,7 @@ object RecsEngineClient extends HttpClient {
 
     implicit val formats = DefaultFormats
     val jsonOutput = recsAsJson merge JObject(JField("expiry", JInt(end)) :: Nil)
-    write(jsonOutput)
+    jsonOutput
   }
 
 }

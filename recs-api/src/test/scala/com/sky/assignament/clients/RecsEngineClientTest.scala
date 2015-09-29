@@ -88,14 +88,14 @@ class RecsEngineClientTest extends FlatSpec with Matchers with BeforeAndAfterEac
 
 
     val recs = RecsEngineClient.getRecsForSubscriber("subscriber1", currentTime)
-    assert(recs == "[ {\"recommendations\":[{\"uuid\":\"1f18536a-e86f-4781-9819-7b3e7d385908\"," +
+    assert(recs =="[{\"recommendations\":[{\"uuid\":\"1f18536a-e86f-4781-9819-7b3e7d385908\"," +
       "\"start\":\"1415288463203\",\"end\":\"1415289998492\"},{\"uuid\":\"c3a6ac38-16b1-41da-83f8-077aff4841d6\"," +
       "\"start\":\"1415284772998\",\"end\":\"1415289302319\"},{\"uuid\":\"42d34321-3283-467c-89dd-36983d8e4f4e\"," +
       "\"start\":\"1415290983863\",\"end\":\"1415294905557\"},{\"uuid\":\"b5408d7c-688a-48f5-ae04-7d78765c3f3f\"," +
       "\"start\":\"1415289589667\",\"end\":\"1415290372753\"},{\"uuid\":\"4d6bf32d-11d8-4b82-9b2b-07bc612a6060\"," +
-      "\"start\":\"1415290982236\",\"end\":\"1415292219539\"}],\"expiry\":" + currentTimePlus1Hr + "}," +
-      "{\"recommendations\":\"1f18536a-e86f-4781-9819-7b3e7d385908\",\"expiry\":" + currentTimePlus2Hr + "}," +
-      "{\"recommendations\":\"4d6bf32d-11d8-4b82-9b2b-07bc612a6060\",\"expiry\":" + currentTimePlus3Hr + "}]")
+      "\"start\":\"1415290982236\",\"end\":\"1415292219539\"}],\"expiry\":"+currentTimePlus1Hr+"}," +
+      "{\"recommendations\":\"1f18536a-e86f-4781-9819-7b3e7d385908\",\"expiry\":"+currentTimePlus2Hr+"}," +
+      "{\"recommendations\":\"4d6bf32d-11d8-4b82-9b2b-07bc612a6060\",\"expiry\":"+currentTimePlus3Hr+"}]")
   }
 
 
